@@ -637,106 +637,88 @@ transform: scale(1.5);
       <strong>Accessibility & clarity:</strong> This site is written in plain language so everyone can understand our services and make simple requests. If you need help, call us and we will guide you step-by-step.
     </div>
   </footer>
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>
-    // Simple helpers
-    function scrollToId(id){
-      const el = document.getElementById(id);
-      if(!el) return;
-      el.scrollIntoView({behavior:'smooth', block:'start'});
-    }
-
-    // Assistant toggle
-    const assistantToggle = document.getElementById('assistantToggle');
-    const assistantPanel = document.getElementById('assistantPanel');
-    let assistantOpen = false;
-    assistantToggle.addEventListener('click', () => {
-      assistantOpen = !assistantOpen;
-      assistantPanel.classList.toggle('visible', assistantOpen);
-      assistantToggle.setAttribute('aria-expanded', assistantOpen ? 'true' : 'false');
-    });
-
-    // Smooth nav for small screens - simple show/hide (no heavy nav)
-    document.getElementById('logo-mark').addEventListener('click', () => scrollToId('home'));
-    document.querySelectorAll('.nav-links a').forEach(a => {
-      a.addEventListener('click', (e) => {
-        if(a.hash) {
-          e.preventDefault();
-          scrollToId(a.hash.replace('#',''));
-        }
-      });
-    });
-
-    // Request form (local demo — replace with your backend)
-    // Initialize EmailJS with your User ID
-emailjs.init('VdZnwQXzlvXUMvOpB');
-
-const requestForm = document.getElementById('requestForm');
-requestForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  // Gather data
-  const name = document.getElementById('name').value.trim();
-  const contactInfo = document.getElementById('contactInfo').value.trim();
-  const message = document.getElementById('message').value.trim();
-
-  // Simple local validation
-  if (!name || !contactInfo || !message) {
-    alert('Please fill the form so we can help you.');
-    return;
+<script>
+  // Simple helpers
+  function scrollToId(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.scrollIntoView({behavior:'smooth', block:'start'});
   }
 
-  // Send email using EmailJS
-  emailjs.send('service_yekq70e', 'template_8in927p', {
-    name: name,
-    contactInfo: contactInfo,
-    message: message,
-  })
-    .then((response) => {
-      console.log('Request sent:', response.status, response.text);
+  // Assistant toggle
+  const assistantToggle = document.getElementById('assistantToggle');
+  const assistantPanel = document.getElementById('assistantPanel');
+  let assistantOpen = false;
+  assistantToggle.addEventListener('click', () => {
+    assistantOpen = !assistantOpen;
+    assistantPanel.classList.toggle('visible', assistantOpen);
+    assistantToggle.setAttribute('aria-expanded', assistantOpen ? 'true' : 'false');
+  });
 
-      // Display success message
-      const msgEl = document.getElementById('formMessage');
-      msgEl.style.display = 'block';
-      msgEl.textContent = 'Thank you! Your request was sent. We will contact you soon.';
-
-      // Reset form after a pause
-      setTimeout(() => {
-        msgEl.style.display = 'none';
-        requestForm.reset();
-      }, 4200);
-    })
-    .catch((error) => {
-      console.error('Error sending request:', error);
-      alert('Error sending request. Please try again.');
-    });
-});
-
-document.getElementById('clearForm').addEventListener('click', () => {
-  requestForm.reset();
-});
-
-    // Make sure images are visible and used as backgrounds when needed:
-    // If any image fails to load, fallback color is used by CSS filter above.
-
-    // Small enhancement: gently animate the logo mark on load
-    const logo = document.getElementById('logo-mark');
-    logo.animate([
-      { transform: 'scale(0.85) rotate(-8deg)', opacity: 0 },
-      { transform: 'scale(1) rotate(0deg)', opacity: 1 }
-    ], { duration: 700, easing: 'cubic-bezier(.22,.9,.35,1)' });
-
-    // Accessibility: keyboard toggle assistant with "A"
-    document.addEventListener('keydown', (e) => {
-      if(e.key.toLowerCase() === ''){
-        assistantOpen = !assistantOpen;
-        assistantPanel.classList.toggle('visible', assistantOpen);
-        assistantToggle.setAttribute('aria-expanded', assistantOpen ? 'true' : 'false');
-        assistantToggle.focus();
+  // Smooth nav
+  document.getElementById('logo-mark').addEventListener('click', () => scrollToId('home'));
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.addEventListener('click', (e) => {
+      if(a.hash) {
+        e.preventDefault();
+        scrollToId(a.hash.replace('#',''));
       }
     });
+  });
 
-  </script>
+  // WhatsApp Request Integration
+  const requestForm = document.getElementById('requestForm');
+  requestForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Gather data
+    const name = document.getElementById('name').value.trim();
+    const contactInfo = document.getElementById('contactInfo').value.trim();
+    const message = document.getElementById('message').value.trim();
+
+    // Validation
+    if (!name || !contactInfo || !message) {
+      alert('Please fill the form so we can help you.');
+      return;
+    }
+
+    // Format the WhatsApp message
+    const phone = "+260766512632";
+    const text = `*New Service Request (Avanti)*\n\n` +
+                 `*Name:* ${name}\n` +
+                 `*Contact:* ${contactInfo}\n` +
+                 `*Details:* ${message}`;
+
+    // Encode for URL
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://wa.me/${phone.replace('+', '')}?text=${encodedText}`;
+
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+
+    // UI Feedback
+    const msgEl = document.getElementById('formMessage');
+    msgEl.style.display = 'block';
+    msgEl.textContent = 'Opening WhatsApp to send your request...';
+
+    // Reset form after a pause
+    setTimeout(() => {
+      msgEl.style.display = 'none';
+      requestForm.reset();
+    }, 4000);
+  });
+
+  document.getElementById('clearForm').addEventListener('click', () => {
+    requestForm.reset();
+  });
+
+  // Logo Animation
+  const logo = document.getElementById('logo-mark');
+  logo.animate([
+    { transform: 'scale(0.85) rotate(-8deg)', opacity: 0 },
+    { transform: 'scale(1) rotate(0deg)', opacity: 1 }
+  ], { duration: 700, easing: 'cubic-bezier(.22,.9,.35,1)' });
+</script>
 
 </body>
 </html>
