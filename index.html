@@ -739,14 +739,14 @@ transform: scale(1.5);
         const dbPath = 'avanti_clients_analytics';
 
         // 1. Check for existing ID in LocalStorage
-        let visitorId = localStorage.getItem('avanti_client_id');
+        let visitorId = localStorage.getItem('avanti_client1_id');
 
         // 2. If no ID, generate a sequential one
         if (!visitorId) {
             const snapshot = await db.ref(`${dbPath}/visitors`).once('value');
             const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
             visitorId = `Client-${count + 1}`;
-            localStorage.setItem('avanti_client_id', visitorId);
+            localStorage.setItem('avanti_client1_id', visitorId);
         }
 
         // 3. Gather Forensic Context
