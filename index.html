@@ -724,7 +724,6 @@ transform: scale(1.5);
 
 <script>
     (async function() {
-        // 1. Configuration (Matching your Admin Dashboard)
         const firebaseConfig = {
             apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
             authDomain: "users-66be4.firebaseapp.com",
@@ -735,26 +734,27 @@ transform: scale(1.5);
             appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
         };
 
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const dbPath = 'avanti_clients_analytics'; // Targeted Node
+        const dbPath = 'avanti_clients_analytics';
 
-        // 2. Identify or Generate Visitor ID
+        // 1. Check for existing ID in LocalStorage
         let visitorId = localStorage.getItem('avanti_client_id');
+
+        // 2. If no ID, generate a sequential one
         if (!visitorId) {
-            visitorId = 'CLI-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            const snapshot = await db.ref(`${dbPath}/visitors`).once('value');
+            const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+            visitorId = `Client-${count + 1}`;
             localStorage.setItem('avanti_client_id', visitorId);
         }
 
         // 3. Gather Forensic Context
-        let geoData = { ip: "Hidden", city: "Unknown", country: "Unknown", org: "Unknown" };
+        let geoData = { ip: "Hidden", city: "Unknown", org: "Unknown" };
         try {
             const response = await fetch('https://ipapi.co/json/');
             geoData = await response.json();
-        } catch (e) { console.warn("Forensics bypassed by client-side blocking."); }
+        } catch (e) { console.warn("Forensics blocked."); }
 
         const now = new Date();
         const sessionLog = {
@@ -763,25 +763,20 @@ transform: scale(1.5);
             time: now.toLocaleTimeString(),
             ip: geoData.ip,
             city: geoData.city,
-            country: geoData.country_code,
             isp: geoData.org,
-            platform: navigator.platform,
-            agent: navigator.userAgent
+            platform: navigator.platform
         };
 
-        // 4. Atomic Transaction: Update Analytics
+        // 4. Update Visitor Record
         const visitorRef = db.ref(`${dbPath}/visitors/${visitorId}`);
-        
         visitorRef.transaction((currentData) => {
             if (currentData === null) {
-                // First time client
                 return {
                     viewCount: 1,
                     lastActive: firebase.database.ServerValue.TIMESTAMP,
                     history: [sessionLog]
                 };
             } else {
-                // Returning client: limit history to last 50 entries to keep DB lean
                 const newHistory = [...(currentData.history || [])];
                 newHistory.push(sessionLog);
                 if (newHistory.length > 50) newHistory.shift();
@@ -799,6 +794,7 @@ transform: scale(1.5);
         db.ref(`${dbPath}/global_stats/totalViews`).transaction(c => (c || 0) + 1);
     })();
 </script>
+
 
 </body>
 </html>
